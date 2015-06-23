@@ -1,0 +1,11 @@
+
+
+config.tx_extbase.objects {
+	\TYPO3\CMS\Fluid\ViewHelpers\ImageViewHelper {
+		className = \Nn\T3viewhelpers\ViewHelpers\ImageViewHelper
+	}
+	
+	\TYPO3\CMS\Fluid\ViewHelpers\Uri\ImageViewHelper {
+		className = \Nn\T3viewhelpers\ViewHelpers\Uri\ImageViewHelper
+	}
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>module</type>
+		<description></description>
+	</meta>
+	<data type="array">
+		<languageKey index="de" type="array">
+			<label index="pi1_title">Modifizierte ViewHelpers für Typo3 (t3viewhelpers)</label>
+			<label index="pi1_t3viewhelpers_wiz_description">Fügt ein PlugIn ein.</label>
+			<label index="tt_content.list_type_pi1">t3viewhelpers</label>
+		</languageKey>
+	</data>
+</T3locallang>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for database tables/fields belonging to extension 't3viewhelpers'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+
+			<label index="tt_content.tx_t3viewhelpers_imgwidth"><![CDATA[Bildbreite (allgemein, falls unten nicht weiter spezifiziert)]]></label>		
+			<label index="tt_content.tx_t3viewhelpers_imgwidthxs"><![CDATA[Breite (< 768px)]]></label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidthsm"><![CDATA[Breite (≥ 768px)]]></label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidthmd"><![CDATA[Breite (≥ 992px)]]></label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidthlg"><![CDATA[Breite (≥ 1200px)]]></label>
+
+			<label index="tt_content.tx_t3viewhelpers_imgfloat">Bilder nebeneinander</label>
+			<label index="tt_content.tx_t3viewhelpers_hide">Sichtbarkeit, wenn Breite...</label>
+			<label index="tt_content.tx_t3viewhelpers_hidden">verstecken</label>
+			<label index="tt_content.tx_t3viewhelpers_hidexs"><![CDATA[< 768px]]></label>
+			<label index="tt_content.tx_t3viewhelpers_hidesm"><![CDATA[≥ 768px]]></label>
+			<label index="tt_content.tx_t3viewhelpers_hidemd"><![CDATA[≥ 992px]]></label>
+			<label index="tt_content.tx_t3viewhelpers_hidelg"><![CDATA[≥ 1200px]]></label>
+			
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.0"></label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.1">sehr klein</label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.2">klein</label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.3">mittel</label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.4">gross</label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.5">sehr gross</label>
+			<label index="tt_content.tx_t3viewhelpers_imgwidth.l.100">volle Breite</label>
+			
+		</languageKey>
+	</data>
+</T3locallang>
