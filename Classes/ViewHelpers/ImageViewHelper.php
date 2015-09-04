@@ -65,6 +65,7 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 	 */
 	protected $imageService;
 
+
 	/**
 	 * Initialize arguments.
 	 *
@@ -102,25 +103,55 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 		
 //print_r($this);//		\TYPO3\CMS\Core\Utility\DebugUtility::debug( $this );
 		
+/*		
+		$objectManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('\TYPO3\CMS\Extbase\Object\ObjectManager');
+		$configurationManager = $objectManager->get('\TYPO3\CMS\Extbase\Configuration\ConfigurationManager');
+		$data = $configurationManager->getContentObject()->data;
+*/
+
+		$contextIsBackend = TYPO3_MODE == 'BE';
+		
+		$fileReferenceRepository = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('\TYPO3\CMS\Core\Resource\FileRepository');
 		
 		if (is_null($src) && is_null($image) || !is_null($src) && !is_null($image)) {
 			throw new \TYPO3\CMS\Fluid\Core\ViewHelper\Exception('You must either specify a string src or a File object.', 1382284106);
 		}
 		
+		$fileRef = false;
 		$additionalAttributes = $this->arguments['additionalAttributes'];
+		
 		$image = $this->imageService->getImage($src, $image, $treatIdAsReference);
 		$cropParams = false;
 		
-		if ($treatIdAsReference && TYPO3_MODE != 'BE') {
 		
-			$fileReferenceRepository = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('\TYPO3\CMS\Core\Resource\FileRepository');
-			$fileRef = $fileReferenceRepository->findFileReferenceByUid( $src );
+		
+		if (!$treatIdAsReference && !$contextIsBackend && $this->templateVariableContainer && $this->templateVariableContainer->exists('contentObject')) {
+		
+			// DCE-Variante
+			if ($data = $this->templateVariableContainer->get('contentObject')) {
+				$fileRef = $this->getSysFileReference(array(
+					'uid_local' => $image->getUid(),
+					'uid_foreign' => $data['uid']
+				));
+				if ($fileRef) {
+					$treatIdAsReference = true;
+				}
+			}
 			
-			
+		}
+		
+		
+		
+		
+		
+		if ($treatIdAsReference && !$contextIsBackend) {
+		
+			if (!$fileRef) $fileRef = $fileReferenceRepository->findFileReferenceByUid( $src );
 			$fileAttr = $image->getProperties();
+
 			$cropExtensionLoaded = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('t3pimper');
 			$imgvariants = json_decode($fileRef->getProperty('imgvariants'), true);
-			
+				
 			if ($cropExtensionLoaded && $imgvariants) {
 
 				$cropVariants = $imgvariants['crop'];
@@ -229,13 +260,15 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 		);
 
 		if ($cropParams) {
-//			echo "<pre>".print_r($cropParams,true)."</pre>";
+//echo "<pre>".print_r($cropParams,true)."</pre>";
 			$cropProcessingInstructions = $this->initCrop($cropParams, $image->getProperties(), $processingInstructions);
 			$processedImage = $this->imageService->applyProcessingInstructions($image, $cropProcessingInstructions);
 			$imageUri = $this->imageService->getImageUri($processedImage);
+		
 		} else {
 			$processedImage = $this->imageService->applyProcessingInstructions($image, $processingInstructions);
 			$imageUri = $this->imageService->getImageUri($processedImage);
+			// \TYPO3\CMS\Core\Utility\DebugUtility::debug( $processedImage );
 		}
 		
 		if ($onlyReturnUri && !$returnBackgroundStyles) return $imageUri;
@@ -243,6 +276,9 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 		$this->tag->addAttribute('src', $imageUri);
 		$this->tag->addAttribute('width', $processedImage->getProperty('width'));
 		$this->tag->addAttribute('height', $processedImage->getProperty('height'));
+
+//echo "<img src=\"$imageUri\" />";
+
 
 		$alt = $image->getProperty('alternative');
 		$title = $image->getProperty('title');
@@ -262,7 +298,10 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 		$layoutKey = $configuration['layoutKey'];
 		unset($configuration['file.']);
 		
+		// Render srcset-Attribute
 		$attr = $this->cObj->getImageSourceCollection($layoutKey, $configuration, $imageUri);
+//echo $imageUri;
+		
 		$this->tag->addAttribute($layoutKey, $attr);
 
 		// Rendering mit Focus-Point
@@ -376,26 +415,26 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 
 		if ($maxWidth && !$width && !$height) {
 			$width = $maxWidth;
-			$height = (int)$width * ($arValues[1] / $arValues[0]);
+			$height = ceil( $width * ($arValues[1] / $arValues[0]) );
 		} elseif ($maxWidth && $width) {
-			$height = (int)$width * ($arValues[1] / $arValues[0]);
+			$height = ceil( $width * ($arValues[1] / $arValues[0]) );
 		} elseif ($height && $width) {
-			$width = (int)$height * ($arValues[0] / $arValues[1]);
+			$width = ceil( $height * ($arValues[0] / $arValues[1]) );
 			if ($maxWidth && $maxWidth <= $width) {
 				$width = $maxWidth;
-				$height = (int)$width * ($arValues[1] / $arValues[0]);
+				$height = ceil( $width * ($arValues[1] / $arValues[0]) );
 			}
 		}
 
 		//cropping
 		if ($cropData['cropValues']) {
-			$srcWidth = (int)$fileWidth * $width / $cropWidth;
-			$srcHeight = (int)$fileHeight * $height / $cropHeight;
+			$srcWidth = ceil( $fileWidth * $width / $cropWidth );
+			$srcHeight = ceil( $fileHeight * $height / $cropHeight );
 
-			$offsetX = (int)$cropValues['x1'] * ($width / $cropWidth);
-			$offsetY = (int)$cropValues['y1'] * ($height / $cropHeight);
+			$offsetX = ceil( $cropValues['x1'] * ($width / $cropWidth) );
+			$offsetY = ceil( $cropValues['y1'] * ($height / $cropHeight) );
 
-			$cropParameters = ' -crop ' . (int)$width . 'x' . (int)$height . '+' . (int)$offsetX . '+' . (int)$offsetY . ' ';
+			$cropParameters = ' -crop ' . ceil($width) . 'x' . ceil($height) . '+' . ceil($offsetX) . '+' . ceil($offsetY) . ' ';
 		}
 
 		//set values
@@ -403,14 +442,42 @@ class ImageViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedV
 		$processingConfiguration['maxHeight'] = '';
 
 		if (!$cropValues) {
-			$processingConfiguration['width'] = (int)$width . 'c';
-			$processingConfiguration['height'] = (int)$height . 'c';
+			$processingConfiguration['width'] = ceil($width . 'c');
+			$processingConfiguration['height'] = ceil($height . 'c');
 		} else {
-			$processingConfiguration['width'] = (int)$srcWidth;
-			$processingConfiguration['height'] = (int)$srcHeight;
+			$processingConfiguration['width'] = ceil($srcWidth);
+			$processingConfiguration['height'] = ceil($srcHeight);
 			$processingConfiguration['additionalParameters'] = $cropParameters . $processingConfiguration['additionalParameters'];
 		}	   
 
 		return $processingConfiguration;
+	}
+	
+	
+	public function getSysFileReference ( $params = array(), $tableName = 'tt_content') {
+
+		$fileRepository = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Core\Resource\FileRepository');
+		$pageRepository = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Frontend\Page\PageRepository');
+		$DB = \Nn\T3viewhelpers\Utilities\DatabaseUtility::getDatabaseConnection();
+		
+		$query = array();
+		foreach ($params as $k=>$v) {
+			$kc = $DB->quoteStr($k);
+			$query[] = "{$kc}=".$DB->fullQuoteStr($v);
+		}
+		
+		$row = \Nn\T3viewhelpers\Utilities\DatabaseUtility::getDatabaseConnection()->exec_SELECTgetSingleRow(
+			'uid',
+			'sys_file_reference',
+			'tablenames=' . $DB->fullQuoteStr($tableName, 'sys_file_reference') .
+				' AND ' . join(' AND ', $query) .
+				$pageRepository->enableFields('sys_file_reference', $pageRepository->showHiddenRecords),
+			'',
+			'sorting_foreign',
+			'',
+			'uid'
+		);
+		$fileRef = $fileRepository->findFileReferenceByUid(intval($row['uid']));
+		return count($fileRef) ? $fileRef : array();
 	}
 }
